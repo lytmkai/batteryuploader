@@ -21,14 +21,18 @@ jobs:
         cache: gradle
 
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
+      uses: android-actions/setup-android@v3
       with:
-        packages: tools, platform-tools, build-tools-33.0.0, android-33, extra-android-support, extra-google-m2repository, extra-android-m2repository
+        sdk-packages: |
+          platforms;android-33
+          build-tools;33.0.0
+          platform-tools
+          tools
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v5
       with:
-        gradle-version: 8.2  # ← 显式指定
+        gradle-version: 8.2
 
     - name: Build with Gradle
       run: gradle build
