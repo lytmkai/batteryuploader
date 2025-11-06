@@ -27,6 +27,8 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v5
+      with:
+        gradle-version: 8.2  # ← 显式指定
 
     - name: Build with Gradle
       run: gradle build
