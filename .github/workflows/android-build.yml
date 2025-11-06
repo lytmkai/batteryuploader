@@ -25,9 +25,6 @@ jobs:
       with:
         packages: tools, platform-tools, build-tools-33.0.0, android-33, extra-android-support, extra-google-m2repository, extra-android-m2repository
 
-    - name: Make Gradle executable
-      run: chmod +x ./gradlew
-
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2
       with:
