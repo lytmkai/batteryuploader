@@ -23,11 +23,12 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       with:
-        sdk-packages: |
-          platforms;android-33
-          build-tools;33.0.0
-          platform-tools
-          tools
+        packages: 'platforms;android-33 build-tools;33.0.0 platform-tools tools'
+
+    - name: Setup Android build-tools
+      run: |
+        $ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager "build-tools;33.0.0"
+        echo "$ANDROID_HOME/build-tools/33.0.0" >> "$GITHUB_PATH"
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v5
