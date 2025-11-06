@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.lytmkai.batteryuploader.app-merged_res-33:/layout_activity_main.xml.flat",
+        "source": "com.lytmkai.batteryuploader.app-main-34:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.lytmkai.batteryuploader.app-merged_res-33:/drawable_border.xml.flat",
+        "source": "com.lytmkai.batteryuploader.app-main-34:/drawable/border.xml"
+    }
+]

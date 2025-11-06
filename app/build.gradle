@@ -18,9 +18,19 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        release {
+            storeFile file("battery-upload.keystore")
+            storePassword "123456"
+            keyAlias "battery-upload"
+            keyPassword "123456"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -30,6 +40,16 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+
+    // Set release APK output file name to include build date: BatteryUploader_yyyyMMdd.apk
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            if (variant.buildType.name == 'release') {
+                def formattedDate = new Date().format('yyyyMMdd')
+                outputFileName = "BatteryUploader_${formattedDate}.apk"
+            }
+        }
     }
 }
 

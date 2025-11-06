@@ -11,5 +11,7 @@ data class BatteryData(
     @SerializedName("health") val health: String,
     @SerializedName("temperature") val temperature: Float,
     @SerializedName("voltage") val voltage: Float,
-    @SerializedName("timestamp") val timestamp: Long
+        @SerializedName("current") val current: Float,
+        @SerializedName("power") val power: Float,
+        @SerializedName("timestamp") val timestamp: Long
 )

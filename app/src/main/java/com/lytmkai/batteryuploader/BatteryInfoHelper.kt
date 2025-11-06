@@ -21,6 +21,16 @@ class BatteryInfoHelper(private val context: Context) {
         val voltage = intent?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)?.toFloat() ?: 0f
         val percentage = (level.toFloat() / scale.toFloat()) * 100
         
+            // 获取电流信息（微安）
+            var current = 0f
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                // 正值表示充电电流，负值表示放电电流
+                current = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW).toFloat() / 1000 // 转换为毫安
+            }
+
+            // 计算功率（毫瓦）
+            val power = (voltage * current).div(1000) // 电压(mV) * 电流(mA) / 1000 = 功率(mW)
+
         return BatteryData(
             deviceId = getDeviceId(),
             level = level,
@@ -30,6 +40,8 @@ class BatteryInfoHelper(private val context: Context) {
             health = health,
             temperature = temperature,
             voltage = voltage,
+            current = current,
+            power = power,
             timestamp = System.currentTimeMillis()
         )
     }
@@ -61,6 +73,16 @@ class BatteryInfoHelper(private val context: Context) {
     private fun getDeviceId(): String {
         val manufacturer = Build.MANUFACTURER
         val model = Build.MODEL
-        return "${manufacturer}_${model}_${Build.SERIAL}".replace(" ", "_")
+        val serial = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                Build.getSerial()
+            } catch (e: SecurityException) {
+                "unknown"
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            Build.SERIAL
+        }
+        return "${manufacturer}_${model}_${serial}".replace(" ", "_")
     }
 }
