@@ -26,9 +26,7 @@ jobs:
         packages: tools, platform-tools, build-tools-33.0.0, android-33, extra-android-support, extra-google-m2repository, extra-android-m2repository
 
     - name: Setup Gradle
-      uses: gradle/gradle-build-action@v2
-      with:
-        gradle-version: wrapper
+      uses: gradle/actions/setup-gradle@v5
 
     - name: Cache Gradle packages
       uses: actions/cache@v3
@@ -39,9 +37,6 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
-
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
 
     - name: Build with Gradle
       run: ./gradlew build
