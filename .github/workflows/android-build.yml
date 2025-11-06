@@ -38,21 +38,6 @@ jobs:
     - name: Build Release APK
       run: gradle assembleRelease
 
-    - name: get base64 keyStore
-      run: |
-        echo "FILE_CONTENT=$(base64 -w 0 $GITHUB_WORKSPACE/battery-upload.keystore)" >> $GITHUB_ENV
-         
-
-    - name: Sign Release APK
-      uses: r0adkll/sign-android-release@v1
-      with:
-        releaseDirectory: app/build/outputs/apk/release
-        signingKeyBase64: $FILE_CONTENT
-        alias: "battery-upload"
-        keyStorePassword: "lytmkai"
-        keyPassword: "lytmkai"
-      env:
-        BUILD_TOOLS_VERSION: "33.0.0"
 
     - name: Upload APK to Artifacts
       uses: actions/upload-artifact@v4
