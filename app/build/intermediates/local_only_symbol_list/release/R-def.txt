@@ -1,9 +1,0 @@
-R_DEF: Internal format may change without notice
-local
-drawable border
-id startStopButton
-id statusTextView
-id uploadStatusTextView
-id urlEditText
-layout activity_main
-string app_name
