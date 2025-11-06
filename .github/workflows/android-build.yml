@@ -53,7 +53,7 @@ jobs:
       uses: r0adkll/sign-android-release@v1
       with:
         releaseDirectory: app/build/outputs/apk/release
-        signingKeyBase64: "$FILE_CONTENT"
+        signingKeyBase64: $FILE_CONTENT
         alias: "battery-upload"
         keyStorePassword: "123456"
         keyPassword: "123456"
