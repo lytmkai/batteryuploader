@@ -40,7 +40,7 @@ jobs:
 
     - name: get base64 keyStore
       run: |
-        echo "FILE_CONTENT=$(cat $GITHUB_WORKSPACE/base64.keystore)" >> $GITHUB_ENV
+        echo "FILE_CONTENT=$(base64 -w 0 $GITHUB_WORKSPACE/battery-upload.keystore)" >> $GITHUB_ENV
          
 
     - name: Sign Release APK
