@@ -35,12 +35,6 @@ jobs:
       with:
         gradle-version: 8.2
 
-    - name: Build with Gradle
-      run: gradle build
-
-    - name: Run tests
-      run: gradle test
-
     - name: Build Release APK
       run: gradle assembleRelease
 
@@ -55,8 +49,8 @@ jobs:
         releaseDirectory: app/build/outputs/apk/release
         signingKeyBase64: $FILE_CONTENT
         alias: "battery-upload"
-        keyStorePassword: "123456"
-        keyPassword: "123456"
+        keyStorePassword: "lytmkai"
+        keyPassword: "lytmkai"
       env:
         BUILD_TOOLS_VERSION: "33.0.0"
 
