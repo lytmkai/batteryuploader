@@ -73,16 +73,7 @@ class BatteryInfoHelper(private val context: Context) {
     private fun getDeviceId(): String {
         val manufacturer = Build.MANUFACTURER
         val model = Build.MODEL
-        val serial = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            try {
-                Build.getSerial()
-            } catch (e: SecurityException) {
-                "unknown"
-            }
-        } else {
-            @Suppress("DEPRECATION")
-            Build.SERIAL
-        }
-        return "${manufacturer}_${model}_${serial}".replace(" ", "_")
+        
+        return "${manufacturer}_${model}".replace(" ", "_")
     }
 }
