@@ -25,11 +25,16 @@ class BatteryUploadService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var uploadJob: Job? = null
     private lateinit var batteryHelper: BatteryInfoHelper
+    
+    private var lastUploadTime = 0L  // 记录上次上传时间
+    private val MIN_UPLOAD_INTERVAL = 5000L  // 最小上传间隔5秒
 
     companion object {
         const val CHANNEL_ID = "BatteryUploadServiceChannel"
         const val ACTION_STOP = "ACTION_STOP_SERVICE"
         const val UPLOAD_INTERVAL_MS = 10 * 60 * 1000L // 15分钟，可调小如 5*60*1000L
+
+
 
         fun startService(context: Context) {
             val intent = Intent(context, BatteryUploadService::class.java)
@@ -82,7 +87,7 @@ class BatteryUploadService : Service() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("电池数据上传中")
-            .setContentText("点击停止上传")
+            .setContentText("正在运行")
             .setSmallIcon(R.drawable.ic_battery_alert) // 建议添加一个图标，或用默认
             .setContentIntent(pendingIntent)
             .setOngoing(true)
@@ -105,7 +110,21 @@ class BatteryUploadService : Service() {
         uploadJob = CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
             while (true) {
                 try {
-                    uploadBatteryData()
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastUploadTime >= MIN_UPLOAD_INTERVAL) {
+                        uploadBatteryData()
+                        lastUploadTime = currentTime
+                    } else {
+                        // 如果距离上次上传不足5秒，则等待剩余时间
+                        val remainingTime = MIN_UPLOAD_INTERVAL - (currentTime - lastUploadTime)
+                        delay(remainingTime)
+                        // 再次检查是否可以上传
+                        val newCurrentTime = System.currentTimeMillis()
+                        if (newCurrentTime - lastUploadTime >= MIN_UPLOAD_INTERVAL) {
+                            uploadBatteryData()
+                            lastUploadTime = newCurrentTime
+                        }
+                    }
                 } catch (e: Exception) {
                     // 可记录日志，但不中断循环
                 }
