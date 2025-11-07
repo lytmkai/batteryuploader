@@ -87,7 +87,7 @@ def increaseAppVersion() {
         def major = versionParts[0]
         def minor = versionParts[1]
         def patch = versionParts[2].toInteger() + 1
-        def newVersionName = "$major.$minor.$patch"
+        def newVersionName = String.format("%s.%s.%s", major, minor, patch)
         
         props['VERSION_NAME'] = newVersionName
         println "✅ VersionName updated: $versionName → $newVersionName"
