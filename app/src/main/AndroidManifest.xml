@@ -24,7 +24,7 @@
         </activity>
 
         <service
-            android:name="com.lytmkai.BatteryUploadService"
+            android:name=".BatteryUploadService"
             android:enabled="true"
             android:exported="false" />
 
