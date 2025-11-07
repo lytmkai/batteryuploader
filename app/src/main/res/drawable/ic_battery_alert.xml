@@ -1,1 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#e3e3e3"><path d="M0 0h24v24H0z" fill="none"/><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zM13 18h-2v-2h2v2zm0-4h-2V9h2v5z"/></svg>
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:pathData="M0,0 L24,0 L24,24 L0,24 Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M15.67,4 L14,4 L14,2 L10,2 L10,4 L8.33,4 C7.6,4,7,4.6,7,5.33 L7,20.66 C7,21.4,7.6,22,8.33,22 L15.66,22 C16.4,22,17,21.4,17,20.67 L17,5.33 C17,4.6,16.4,4,15.67,4 Z M13,18 L11,18 L11,16 L13,16 L13,18 Z M13,14 L11,14 L11,9 L13,9 L13,14 Z" />
+</vector>
