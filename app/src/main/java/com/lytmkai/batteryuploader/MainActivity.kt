@@ -90,8 +90,13 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(uploadResultReceiver, IntentFilter("com.lytmkai.batteryuploader.UPLOAD_RESULT"))
 
 
-        urlEditText.clearFocus()
 
+        statusTextView.isFocusable = true
+        statusTextView.isFocusableInTouchMode = true
+        statusTextView.requestFocus() // 现在可以成功获取焦点
+
+        urlEditText.clearFocus()
+        
     }
     
     private fun initViews() {

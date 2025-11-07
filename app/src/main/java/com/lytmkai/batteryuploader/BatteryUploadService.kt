@@ -94,7 +94,7 @@ class BatteryUploadService : Service() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "电池上传服务",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_MAX
             )
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
