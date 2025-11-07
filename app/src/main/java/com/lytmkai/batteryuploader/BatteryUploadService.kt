@@ -18,6 +18,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
+import com.google.gson.Gson
 
 class BatteryUploadService : Service() {
 
@@ -115,12 +116,15 @@ class BatteryUploadService : Service() {
 
     private suspend fun uploadBatteryData() {
         val prefs = getSharedPreferences("BatteryUploaderPrefs", Context.MODE_PRIVATE)
-        val url = prefs.getString("upload_url", "").takeIf { it.isNotBlank() } ?: return
+        
+
+        val url = prefs.getString("upload_url", "") ?: return
+        if (url.isBlank()) return
 
         val batteryData = batteryHelper.getBatteryData()
         var gson = Gson()
 
-        var json = gson.toJson(batteryData).toRequestBody(JSON)
+        var json = gson.toJson(batteryData)
 
         // val json = """
         //     {
