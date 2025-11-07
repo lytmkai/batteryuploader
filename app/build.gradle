@@ -12,8 +12,9 @@ android {
         applicationId "com.lytmkai.batteryuploader"
         minSdk 24
         targetSdk 33
-        versionCode 1
-        versionName "1.0"
+        
+        versionCode project.property('VERSION_CODE').toInteger()
+        versionName project.property('VERSION_NAME')
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -46,7 +47,7 @@ android {
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
             if (variant.buildType.name == 'release') {
-                def formattedDate = new Date().format('yyyyMMdd')
+                def formattedDate = new Date().format('yyyyMMddHHmmss')
                 outputFileName = "BatteryUploader_${formattedDate}.apk"
             }
         }
@@ -66,4 +67,47 @@ dependencies {
     
     // OkHttp
     implementation 'com.squareup.okhttp3:logging-interceptor:4.11.0'
+}
+
+
+
+def increaseAppVersion() {
+    def propsFile = rootProject.file('gradle.properties')
+    def props = new Properties()
+    props.load(propsFile.newDataInputStream())
+
+    // 1. 递增 versionCode
+    def currentVersionCode = props['VERSION_CODE'].toInteger()
+    def newVersionCode = currentVersionCode + 1
+
+    // 2. 递增 versionName 的 patch 版本（x.y.z → x.y.(z+1)）
+    def versionName = props['VERSION_NAME']
+    def versionParts = versionName.split('\\.')
+    if (versionParts.size() >= 3) {
+        def major = versionParts[0]
+        def minor = versionParts[1]
+        def patch = versionParts[2].toInteger() + 1
+        def newVersionName = "$major.$minor.$patch"
+        
+        props['VERSION_NAME'] = newVersionName
+        println "✅ VersionName updated: $versionName → $newVersionName"
+    } else {
+        println "⚠️ VERSION_NAME 格式不标准（应为 x.y.z），跳过递增"
+    }
+
+    props['VERSION_CODE'] = newVersionCode.toString()
+    props.store(propsFile.newWriter(), null)
+    println "✅ VersionCode updated: $currentVersionCode → $newVersionCode"
+}
+
+task autoIncrementVersion {
+    doLast {
+        increaseAppVersion()
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == 'assembleRelease' || task.name == 'bundleRelease') {
+        task.dependsOn 'autoIncrementVersion'
+    }
 }
