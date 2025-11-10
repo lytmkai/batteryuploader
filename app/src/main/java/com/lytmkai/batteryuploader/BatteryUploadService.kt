@@ -8,26 +8,25 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
-import java.text.SimpleDateFormat
-import java.util.*
 import com.google.gson.Gson
 
 class BatteryUploadService : Service() {
 
-    private val handler = Handler(Looper.getMainLooper())
+
     private var uploadJob: Job? = null
     private lateinit var batteryHelper: BatteryInfoHelper
     
     private var lastUploadTime = 0L  // 记录上次上传时间
     private val MIN_UPLOAD_INTERVAL = 5000L  // 最小上传间隔5秒
+
+
+    private val KEY_CURRENT_UNIT = "current_unit_ma"
 
     companion object {
         const val CHANNEL_ID = "BatteryUploadServiceChannel"
@@ -81,7 +80,7 @@ class BatteryUploadService : Service() {
         val pendingIntent = PendingIntent.getService(
             this,
             0,
-            stopIntent,
+             stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -99,7 +98,7 @@ class BatteryUploadService : Service() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "电池上传服务",
-                NotificationManager.IMPORTANCE_MAX
+                NotificationManager.IMPORTANCE_HIGH
             )
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
@@ -126,7 +125,7 @@ class BatteryUploadService : Service() {
                         }
                     }
                 } catch (e: Exception) {
-                    // 可记录日志，但不中断循环
+                    sendUploadResultBroadcast(500, e.toString(), 1)
                 }
                 delay(UPLOAD_INTERVAL_MS)
             }
@@ -134,29 +133,20 @@ class BatteryUploadService : Service() {
     }
 
     private suspend fun uploadBatteryData() {
-        val prefs = getSharedPreferences("BatteryUploaderPrefs", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("BatteryUploaderPrefs", MODE_PRIVATE)
         
 
         val url = prefs.getString("upload_url", "") ?: return
         if (url.isBlank()) return
 
-        val batteryData = batteryHelper.getBatteryData()
-        var gson = Gson()
+        val currentUnitInmA = prefs.getBoolean(KEY_CURRENT_UNIT, false)
 
-        var json = gson.toJson(batteryData)
+        val batteryData = batteryHelper.getBatteryData(currentUnitInmA)
+        val gson = Gson()
 
-        // val json = """
-        //     {
-        //         "percentage": ${batteryData.percentage},
-        //         "status": "${batteryData.status}",
-        //         "health": "${batteryData.health}",
-        //         "temperature": ${batteryData.temperature},
-        //         "voltage": ${batteryData.voltage},
-        //         "current": ${String.format("%.2f", batteryData.current)},
-        //         "power": ${String.format("%.2f", batteryData.power)},
-        //         "timestamp": ${batteryData.timestamp}
-        //     }
-        // """.trimIndent()
+        val json = gson.toJson(batteryData)
+
+        val pthis = this
 
         withContext(Dispatchers.IO) {
             try {
@@ -169,6 +159,15 @@ class BatteryUploadService : Service() {
                 val responseCode = connection.responseCode
                 val response = connection.inputStream.bufferedReader().readText()
                 connection.disconnect()
+
+
+                val notification = NotificationCompat.Builder(pthis, CHANNEL_ID)
+                    .setContentTitle("电池数据上传中")
+                    .setContentText("正在运行")
+                    .setSmallIcon(R.drawable.ic_battery_alert)
+                    .setOngoing(true)
+                    .build()
+                startForeground(101, notification)
 
                 // 可选：发送广播更新 UI（见下文）
                 sendUploadResultBroadcast(responseCode, response, System.currentTimeMillis())

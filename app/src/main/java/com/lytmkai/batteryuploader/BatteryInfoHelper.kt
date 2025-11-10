@@ -1,5 +1,6 @@
 package com.lytmkai.batteryuploader
 
+import android.R
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -8,10 +9,10 @@ import android.os.Build
 
 class BatteryInfoHelper(private val context: Context) {
     
-    fun getBatteryData(): BatteryData {
+    fun getBatteryData(currentUnitInmA: Boolean): BatteryData {
         val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-        val intent = context.registerReceiver(null, 
-            IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+
         
         val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, 0) ?: 0
         val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, 100) ?: 100
@@ -23,9 +24,11 @@ class BatteryInfoHelper(private val context: Context) {
         
             // 获取电流信息（微安）
             var current = 0f
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                // 正值表示充电电流，负值表示放电电流
-                current = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW).toFloat() / 1000 // 转换为毫安
+            // 正值表示充电电流，负值表示放电电流
+            current = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW).toFloat() // 转换为毫安
+
+            if (  currentUnitInmA ==false ){
+                current = current / 1000
             }
 
             // 计算功率（毫瓦）

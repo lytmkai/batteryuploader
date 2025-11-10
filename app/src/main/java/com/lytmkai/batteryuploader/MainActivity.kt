@@ -1,11 +1,11 @@
 package com.lytmkai.batteryuploader
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
-import java.util.concurrent.TimeUnit
 import android.widget.TextView
 import android.widget.Toast
 import android.os.Handler
@@ -14,13 +14,14 @@ import android.text.Editable
 import android.text.TextWatcher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.work.*
 import java.text.SimpleDateFormat
 import java.util.*
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.appcompat.widget.SwitchCompat
+import androidx.core.content.edit
 
 
 class MainActivity : AppCompatActivity() {
@@ -30,13 +31,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var urlEditText: EditText
 
     private lateinit var uploadStatusTextView: TextView
+
+    private lateinit var swCurrentUnit: SwitchCompat
+
     private lateinit var batteryHelper: BatteryInfoHelper
     private var isServiceRunning = false
     
     private val PREFS_NAME = "BatteryUploaderPrefs"
     private val KEY_URL = "upload_url"
-    // 延迟重启 WorkManager 的防抖（避免用户每次输入都重启）
-    private val saveDelayMs = 1000L
+    private val KEY_CURRENT_UNIT = "current_unit_ma"
     private val handler = Handler(Looper.getMainLooper())
     private var saveRunnable: Runnable? = null
 
@@ -85,9 +88,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        
 
-        registerReceiver(uploadResultReceiver, IntentFilter("com.lytmkai.batteryuploader.UPLOAD_RESULT"))
+        registerReceiver(uploadResultReceiver,IntentFilter("com.lytmkai.batteryuploader.UPLOAD_RESULT") )
 
 
 
@@ -104,10 +106,24 @@ class MainActivity : AppCompatActivity() {
         statusTextView = findViewById(R.id.statusTextView)
         urlEditText = findViewById(R.id.urlEditText)
         uploadStatusTextView = findViewById(R.id.uploadStatusTextView)
+        swCurrentUnit = findViewById(R.id.swCurrentUnit)
+
+
         
         // 从 SharedPreferences 读取保存的 URL
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         urlEditText.setText(prefs.getString(KEY_URL, ""))
+
+        val currentUnitInmA = prefs.getBoolean(KEY_CURRENT_UNIT, false)
+
+        if ( currentUnitInmA ){
+            swCurrentUnit.isChecked = true
+
+        }
+        else{
+            swCurrentUnit.isChecked = false
+
+        }
         
         
         // 在文本变化时保存 URL，并在服务运行时延迟重启 WorkManager 以应用新 URL
@@ -117,82 +133,33 @@ class MainActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {
                 val url = s.toString()
                 getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                    .edit()
-                    .putString(KEY_URL, url)
-                    .apply()
+                    .edit {
+                        putString(KEY_URL, url)
+                    }
                 
             }
         })
+
+        swCurrentUnit.setOnCheckedChangeListener{_, isChecked->
+
+            getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit {
+                    putBoolean(KEY_CURRENT_UNIT, isChecked)
+                }
+
+
+            updateBatteryStatus()
+        }
+
     }
 
-    // 仅调度/启动 WorkManager 的周期性任务，不改变 UI 状态或标志（用于重启时调用）
-    // private fun schedulePeriodicWork() {
-    //     val constraints = Constraints.Builder()
-    //         .setRequiredNetworkType(NetworkType.CONNECTED)
-    //         .build()
-            
-    //     val uploadRequest = PeriodicWorkRequestBuilder<BatteryUploadWorker>(
-    //         15, TimeUnit.MINUTES
-    //     )
-    //         .setConstraints(constraints)
-    //         .setBackoffCriteria(
-    //             BackoffPolicy.EXPONENTIAL,  // 指数退避
-    //             WorkRequest.MIN_BACKOFF_MILLIS,  // 最小10秒
-    //             TimeUnit.MILLISECONDS
-    //         )
-    //         .build()
-
-    //     WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-    //         "battery_upload",
-    //         ExistingPeriodicWorkPolicy.UPDATE,
-    //         uploadRequest
-    //     )
-    // }
-
-    // 立即触发一次上传，并观察状态以更新 UI 日志
-    // private fun triggerImmediateUpload() {
-    //     val oneTime = OneTimeWorkRequestBuilder<BatteryUploadWorker>().build()
-    //     val wm = WorkManager.getInstance(this)
-    //     wm.enqueue(oneTime)
-
-    //     // 观察 WorkInfo 更新并显示输出信息
-    //     wm.getWorkInfoByIdLiveData(oneTime.id).observe(this) { info ->
-    //         if (info != null) {
-    //             val state = info.state
-    //             val output = info.outputData
-    //             val stateMsg = when (state) {
-    //                 WorkInfo.State.SUCCEEDED -> "上传成功"
-    //                 WorkInfo.State.FAILED -> "上传失败"
-    //                 WorkInfo.State.RUNNING -> "上传中..."
-    //                 WorkInfo.State.ENQUEUED -> "已入队"
-    //                 else -> state.name
-    //             }
-                
-    //             val resultMsg = output.getString("result_message") ?: stateMsg
-    //             val responseData = output.getString("response") ?: ""
-    //             val time = output.getLong("timestamp", 0L)
-    //             val timeStr = if (time > 0L) 
-    //                 SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(time)) 
-    //             else ""
-                
-    //             val displayMsg = buildString {
-    //                 append("状态: $stateMsg")
-    //                 if (timeStr.isNotEmpty()) append(" ($timeStr)")
-    //                 if (resultMsg.isNotEmpty() && resultMsg != stateMsg) {
-    //                     append("\n结果: $resultMsg")
-    //                 }
-    //                 if (responseData.isNotEmpty()) {
-    //                     append("\n响应: $responseData")
-    //                 }
-    //             }
-                
-    //             uploadStatusTextView.text = displayMsg
-    //         }
-    //     }
-    // }
-    
+    @SuppressLint("DefaultLocale")
     private fun updateBatteryStatus() {
-        val batteryData = batteryHelper.getBatteryData()
+
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val currentUnitInmA = prefs.getBoolean(KEY_CURRENT_UNIT, false)
+
+        val batteryData = batteryHelper.getBatteryData(currentUnitInmA)
         val statusText = """
             电量: ${batteryData.percentage}%
             状态: ${batteryData.status}
@@ -206,24 +173,7 @@ class MainActivity : AppCompatActivity() {
         
         statusTextView.text = statusText
     }
-    
-    // private fun startBatteryUploadService() {
-    //     schedulePeriodicWork()
-    //     // 立即触发一次上传
-    //     triggerImmediateUpload()
 
-    //     isServiceRunning = true
-    //     startStopButton.text = "停止上传"
-    //     Toast.makeText(this, "电池信息上传服务已启动", Toast.LENGTH_SHORT).show()
-    // }
-    
-    // private fun stopBatteryUploadService() {
-    //     WorkManager.getInstance(this).cancelUniqueWork("battery_upload")
-    //     isServiceRunning = false
-    //     startStopButton.text = "开始上传"
-    //     Toast.makeText(this, "电池信息上传服务已停止", Toast.LENGTH_SHORT).show()
-    // }
-    
     private fun requestPermissions() {
         val permissions = mutableListOf<String>()
         
