@@ -15,6 +15,11 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import com.google.gson.Gson
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
 
 class BatteryUploadService : Service() {
 
@@ -149,6 +154,12 @@ class BatteryUploadService : Service() {
         val pthis = this
 
         withContext(Dispatchers.IO) {
+
+            val date = Date()
+            val formatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            val timeStr = formatter.format(date)
+
+
             try {
                 val connection = URL(url).openConnection() as HttpURLConnection
                 connection.requestMethod = "POST"
@@ -161,9 +172,17 @@ class BatteryUploadService : Service() {
                 connection.disconnect()
 
 
+
+
+
+
+                val notiMsg = "正在运行 [$timeStr 上传成功]"
+
+
+
                 val notification = NotificationCompat.Builder(pthis, CHANNEL_ID)
                     .setContentTitle("电池数据上传中")
-                    .setContentText("正在运行")
+                    .setContentText(notiMsg)
                     .setSmallIcon(R.drawable.ic_battery_alert)
                     .setOngoing(true)
                     .build()
@@ -172,6 +191,16 @@ class BatteryUploadService : Service() {
                 // 可选：发送广播更新 UI（见下文）
                 sendUploadResultBroadcast(responseCode, response, System.currentTimeMillis())
             } catch (e: IOException) {
+
+                val notiMsg = "正在运行 [$timeStr 上传失败]"
+                val notification = NotificationCompat.Builder(pthis, CHANNEL_ID)
+                    .setContentTitle("电池数据上传中")
+                    .setContentText(notiMsg)
+                    .setSmallIcon(R.drawable.ic_battery_alert)
+                    .setOngoing(true)
+                    .build()
+                startForeground(101, notification)
+
                 sendUploadResultBroadcast(-1, e.message ?: "网络错误", System.currentTimeMillis())
             }
         }
